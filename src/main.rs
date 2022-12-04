@@ -1,17 +1,7 @@
-use std::{fs::File as StdFile,
-          io::{stdin, BufReader, BufRead, Read},
-          path::PathBuf, ops::Deref};
-use tokio::{io::copy, fs::File};
-use error_chain::error_chain;
-use tempfile::{Builder, TempDir};
-use flate2::read::GzDecoder;
+use std::io::stdin;
+use anyhow::Result;
 
-error_chain! {
-    foreign_links {
-        Io(std::io::Error);
-        HttpRequest(reqwest::Error);
-    }
-}
+mod download;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,55 +21,11 @@ async fn main() -> Result<()> {
     }
 
     let filename = String::from("title.basics.tsv.gz");
-    let temp_dir = download_films(&filename).await?;
+    let temp_dir = download::download_films(&filename).await?;
     let file = temp_dir.path().join(&filename);
     println!("{}", file.display());
-    let bytes = decompress_content(&file)?;
-    print_films(&bytes);
-
+    let file = download::decompress_content(&file)?;
+    download::get_records_from_file(&file);
     Ok(())
 }
 
-async fn download_films(x: &String) -> Result<TempDir> {
-    let temp_dir = Builder::new()
-        .prefix("tmp_")
-        .rand_bytes(5)
-        .tempdir()?;
-    let request_url = format!("https://datasets.imdbws.com/{x}");
-    println!("Downloading film report from {request_url}");
-    let response = reqwest::get(&request_url).await?;
-    let mut dest = {
-        let filename = response
-            .url()
-            .path_segments()
-            .and_then(|segments| segments.last())
-            .and_then(|name| if name.is_empty() { None } else { Some(name) })
-            .unwrap_or("tmp");
-        let filename = temp_dir.path().join(filename);
-        println!("File will be located in '{:?}'", filename);
-        File::create(filename).await?
-    };
-    let content = response.bytes().await?;
-    copy(&mut content.deref(), &mut dest).await?;
-    Ok(temp_dir)
-}
-
-fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
-    let mut decoder = GzDecoder::new(StdFile::open(file).unwrap());
-    let mut v: Vec<u8> = Vec::new();
-    decoder.read_to_end(&mut v)?;
-    Ok(v)
-}
-
-fn print_films(bytes: &Vec<u8>) {
-    let reader = BufReader::new(bytes.as_slice());
-    for line in reader.lines() {
-        match line {
-            Ok(c) => println!("{}", c.as_str()),
-            Err(err) => {
-                println!("{err}");
-                break;
-            },
-        }
-    }
-}
