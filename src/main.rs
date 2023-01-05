@@ -1,10 +1,16 @@
-use std::io::stdin;
+use std::{io::{stdin,
+               Read},
+          env::args,
+          fs::File};
 use anyhow::Result;
 
-mod download;
+mod get_movies;
+use crate::get_movies::record::Record;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let args: Vec<String> = args().collect();
     println!("How would you like to search for a film?
               1. Title
               2. Director
@@ -20,12 +26,37 @@ async fn main() -> Result<()> {
         Err(error) => println!("Didn't receive correct option. {error}"),
     }
 
-    let filename = String::from("title.basics.tsv.gz");
-    let temp_dir = download::download_films(&filename).await?;
-    let file = temp_dir.path().join(&filename);
-    println!("{}", file.display());
-    let file = download::decompress_content(&file)?;
-    download::get_records_from_file(&file);
+    if !args.is_empty() && args[1] == "--file" {
+        let filename = &args[2];
+        println!("Using local file {}", filename);
+        if let Ok(mut file) = File::open(filename) {
+            let movie_list: Vec<Record> = {
+                let mut bytes = Vec::new();
+                println!("Getting bytes from file");
+                file.read_to_end(&mut bytes)?;
+                println!("File read, now getting records");
+                get_movies::get_records_from_file(&bytes)?
+            };
+            println!("Acquired records from file");
+            // movie_list.iter().for_each(|m| println!("{}", m));
+            println!("{}", movie_list.first().unwrap());
+        } else {
+            println!("Unable to open file!");
+        };
+    } else {
+        let filename = String::from("title.basics.tsv.gz");
+        if let Ok(temp_dir) = get_movies::download_films(&filename).await {
+            let movie_list: Vec<Record> = {
+                let file = temp_dir.path().join(&filename);
+                println!("Downloaded file to {}, now unzipping...", file.display());
+                let bytes = get_movies::decompress_content(&file)?;
+                get_movies::get_records_from_file(&bytes)?
+            };
+            movie_list.iter().for_each(|m| println!("{}", m));
+        } else {
+            println!("Unable to create temporary directory!");
+        };
+    }
     Ok(())
 }
 

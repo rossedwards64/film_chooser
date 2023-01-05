@@ -11,17 +11,9 @@ use tempfile::{Builder,
 use flate2::read::GzDecoder;
 use anyhow::Result;
 
-struct Record {
-    id: String,
-    title_type: String,
-    primary_title: String,
-    original_title: String,
-    is_adult: String,
-    start_year: String,
-    end_year: String,
-    runtime_minutes: String,
-    genres: String /* get field, and parse commas */
-}
+pub mod record;
+use crate::get_movies::record::Record;
+
 
 pub async fn download_films(x: &String) -> Result<TempDir> {
     let temp_dir = Builder::new()
@@ -32,13 +24,14 @@ pub async fn download_films(x: &String) -> Result<TempDir> {
     println!("Downloading film report from {request_url}");
     let response = reqwest::get(&request_url).await?;
     let mut dest = {
-        let filename = response
+        let filename = temp_dir
+            .path()
+            .join(response
             .url()
             .path_segments()
             .and_then(|segments| segments.last())
             .and_then(|name| if name.is_empty() { None } else { Some(name) })
-            .unwrap_or("tmp");
-        let filename = temp_dir.path().join(filename);
+            .unwrap_or("tmp"));
         println!("File will be located in '{:?}'", filename);
         AsyncFile::create(filename).await?
     };
@@ -48,18 +41,28 @@ pub async fn download_films(x: &String) -> Result<TempDir> {
 }
 
 pub fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
-    let mut decoder = GzDecoder::new(StdFile::open(file).unwrap());
+    let mut decoder = GzDecoder::new(StdFile::open(file)?);
     let mut v: Vec<u8> = Vec::new();
     decoder.read_to_end(&mut v)?;
     Ok(v)
 }
 
-/*  */
-pub fn get_records_from_file(file: &Vec<u8>) {
-    let reader = BufReader::new(file.as_slice());
-    for line in reader.lines() {
-        for (i, item) in line.iter().enumerate() {
-            println!("{}: {}", i + 1, item);
-        }
-    }
+pub fn get_records_from_file(file: &Vec<u8>) -> Result<Vec<Record>> {
+    Ok(BufReader::new(file.as_slice())
+       .lines()
+       .map(|line|
+            match line {
+                Ok(l) => l,
+                Err(err) => err.to_string()})
+       .filter(|r| { !is_header(r) })
+       .map(|line| -> Record {
+        record::build_record(&String::from(line)
+                             .split_terminator('\t')
+                             .map(|f| { f.to_string() })
+                             .collect())
+       }).collect())
+}
+
+fn is_header(input: &String) -> bool {
+    return matches!(input.as_ref(), "tconst\ttitleType\tprimaryTitle\toriginalTitle\tisAdult\tstartYear\tendYear\truntimeMinutes\tgenres")
 }
