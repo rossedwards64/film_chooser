@@ -1,6 +1,5 @@
 use core::fmt::Display;
 
-
 pub struct Record {
     id: String,
     title_type: String,
@@ -10,7 +9,7 @@ pub struct Record {
     start_year: String,
     end_year: String,
     runtime_minutes: String,
-    genres: Vec<String>
+    genres: Vec<String>,
 }
 
 impl Display for Record {
@@ -21,22 +20,22 @@ impl Display for Record {
     }
 }
 
-pub fn get_field(record_fields: &Vec<String>, idx: usize) -> String {
+pub fn get_field(record_fields: &[String], idx: usize) -> String {
     match record_fields.get(idx) {
         Some(r) => r.to_string(),
         None => "None".to_owned(),
     }
 }
 
-pub fn build_record(record_fields: &Vec<String>) -> Record {
-    let is_adult = match record_fields.get(4) {
-        Some(b) => if b.to_string() == "1" { true } else { false }
+pub fn build_record(record_fields: &[String]) -> Record {
+    let is_adult = match &record_fields.get(4) {
+        Some(b) => &*b.to_string() == "1",
         None => false,
     };
 
     let genres: Vec<String> = get_field(record_fields, 8)
         .split_terminator(',')
-        .map(|s| { s.to_string() })
+        .map(|s| s.to_string())
         .collect();
 
     Record {
@@ -48,6 +47,6 @@ pub fn build_record(record_fields: &Vec<String>) -> Record {
         start_year: get_field(record_fields, 5),
         end_year: get_field(record_fields, 6),
         runtime_minutes: get_field(record_fields, 7),
-        genres
+        genres,
     }
 }

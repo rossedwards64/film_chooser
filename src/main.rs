@@ -1,24 +1,26 @@
-use std::{io::{stdin,
-               Read},
-          env::args,
-          fs::File};
 use anyhow::Result;
+use std::{
+    env::args,
+    fs::File,
+    io::{stdin, Read},
+};
 
 mod get_movies;
 use crate::get_movies::record::Record;
 
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = args().collect();
-    println!("How would you like to search for a film?
+    println!(
+        "How would you like to search for a film?
               1. Title
               2. Director
               3. Rating
               4. Language
               5. Runtime
               6. Genre
-              7. Release Date");
+              7. Release Date"
+    );
 
     let mut input = String::new();
     match stdin().read_line(&mut input) {
@@ -59,4 +61,3 @@ async fn main() -> Result<()> {
     }
     Ok(())
 }
-
