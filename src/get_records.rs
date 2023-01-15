@@ -1,3 +1,6 @@
+use crate::record_structs::{
+    record::Record,
+    film::Film};
 use anyhow::Result;
 use flate2::read::GzDecoder;
 use std::{
@@ -9,12 +12,9 @@ use std::{
 use tempfile::{Builder, TempDir};
 use tokio::{fs::File as AsyncFile, io::copy};
 
-pub mod record;
-use crate::get_movies::record::Record;
-
-pub async fn download_films(x: &String) -> Result<TempDir> {
+pub async fn download_films(query: &String) -> Result<TempDir> {
     let temp_dir = Builder::new().prefix("tmp_").rand_bytes(5).tempdir()?;
-    let request_url = format!("https://datasets.imdbws.com/{x}");
+    let request_url = format!("https://datasets.imdbws.com/{query}");
     println!("Downloading film report from {request_url}");
     let response = reqwest::get(&request_url).await?;
     let mut dest = {
@@ -41,7 +41,7 @@ pub fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
     Ok(v)
 }
 
-pub fn get_records_from_file(file: &Vec<u8>) -> Result<Vec<Record>> {
+pub fn get_records_from_file(file: &Vec<u8>) -> Result<Vec<Box<dyn Record>>> {
     Ok(BufReader::new(file.as_slice())
         .lines()
         .map(|line| match line {
@@ -54,7 +54,7 @@ pub fn get_records_from_file(file: &Vec<u8>) -> Result<Vec<Record>> {
                 .split_terminator('\t')
                 .map(|f| f.to_string())
                 .collect();
-            record::build_record(&record_fields)
+            Film::build(&record_fields)
         })
         .collect())
 }
