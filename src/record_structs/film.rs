@@ -1,7 +1,6 @@
 use crate::record_structs::record::Record;
 use std::fmt::Display;
 
-
 /* title.basics.tsv.gz */
 pub struct Film {
     id: String,
@@ -41,11 +40,7 @@ where
     where
         Self: Sized,
     {
-        let is_adult = match &obj_fields.get(4) {
-            Some(b) => &*b.to_string() == "1",
-            None => false,
-        };
-
+        let is_adult = Self::get_bool(obj_fields, 4);
         let genres: Vec<String> = Self::get_field(obj_fields, 8)
             .split_terminator(',')
             .map(|s| s.to_string())

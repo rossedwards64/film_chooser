@@ -1,6 +1,4 @@
-use crate::record_structs::{
-    record::Record,
-    film::Film};
+use crate::record_structs::{film::Film, record::Record};
 use anyhow::Result;
 use flate2::read::GzDecoder;
 use std::{
@@ -26,7 +24,7 @@ pub async fn download_films(query: &String) -> Result<TempDir> {
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
                 .unwrap_or("tmp"),
         );
-        println!("File will be located in '{:?}'", filename);
+        println!("File will be located in '{filename:?}'");
         AsyncFile::create(filename).await?
     };
     let content = response.bytes().await?;

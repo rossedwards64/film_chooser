@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
         .enumerate()
         .map(|(i, _opt)| (i + 1, _opt))
         .for_each(|(i, opt)| {
-            println!("{}: {}", i, opt);
+            println!("{i}: {opt}");
         });
 
     let mut input = String::new();
@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
     };
 
     let query = options[parse_input - 1];
-    println!("{}", query);
+    println!("{query}");
 
     if !args.is_empty() && args[1] == "--file" {
         read_local_file(&datasets[0].to_string())
@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
 }
 
 fn read_local_file(filename: &String) -> Result<()> {
-    println!("Using local file {}", filename);
+    println!("Using local file {filename}");
     if let Ok(mut records) = File::open(filename) {
         let movie_list: Vec<Box<dyn Record>> = {
             let mut bytes: Vec<u8> = Vec::new();
