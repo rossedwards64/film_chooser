@@ -2,7 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.basics.tsv.gz */
-pub struct Film {
+pub(crate) struct Film {
     id: String,
     title_type: String,
     primary_title: String,
@@ -40,22 +40,16 @@ where
     where
         Self: Sized,
     {
-        let is_adult = Self::get_bool(obj_fields, 4);
-        let genres: Vec<String> = Self::get_field(obj_fields, 8)
-            .split_terminator(',')
-            .map(|s| s.to_string())
-            .collect();
-
         Box::new(Film {
             id: Self::get_field(obj_fields, 0),
             title_type: Self::get_field(obj_fields, 1),
             primary_title: Self::get_field(obj_fields, 2),
             original_title: Self::get_field(obj_fields, 3),
-            is_adult,
+            is_adult: Self::get_bool(obj_fields, 4),
             start_year: Self::get_field(obj_fields, 5),
             end_year: Self::get_field(obj_fields, 6),
             runtime_minutes: Self::get_field(obj_fields, 7),
-            genres,
+            genres: Self::get_field_vec(obj_fields, 8),
         })
     }
 }

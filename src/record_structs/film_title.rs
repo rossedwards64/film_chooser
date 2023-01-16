@@ -30,9 +30,9 @@ impl ToString for TitleType {
 }
 
 // title.akas.tsv.gz
-pub struct FilmTitle {
+pub(crate) struct FilmTitle {
     id: String,
-    ordering: i64,
+    ordering: u32,
     title: String,
     region: String,
     language: String,
@@ -64,7 +64,6 @@ where
     where
         Self: Sized,
     {
-        let ordering = Self::get_field(obj_fields, 1).parse().unwrap_or(0);
         let types = {
             Self::get_field(obj_fields, 5)
                 .split_terminator(' ')
@@ -81,21 +80,16 @@ where
                 })
                 .collect()
         };
-        let attributes = Self::get_field(obj_fields, 6)
-            .split_terminator(' ')
-            .map(|s| s.to_string())
-            .collect();
-        let is_original_title = Self::get_bool(obj_fields, 7);
 
         Box::new(FilmTitle {
             id: Self::get_field(obj_fields, 0),
-            ordering,
+            ordering: Self::get_field_num(obj_fields, 1),
             title: Self::get_field(obj_fields, 2),
             region: Self::get_field(obj_fields, 3),
             language: Self::get_field(obj_fields, 4),
             types,
-            attributes,
-            is_original_title,
+            attributes: Self::get_field_vec(obj_fields, 6),
+            is_original_title: Self::get_bool(obj_fields, 7),
         })
     }
 }

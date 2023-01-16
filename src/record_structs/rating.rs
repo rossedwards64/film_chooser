@@ -4,13 +4,17 @@ use std::fmt::Display;
 /* title.ratings.tsv.gz */
 pub struct Rating {
     id: String,
-    average_rating: i8,
-    num_votes: u64,
+    average_rating: u32,
+    num_votes: u32,
 }
 
 impl Display for Rating {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(
+            f,
+            "ID: {}\nAverage Rating: {}\nNumber of Votes: {}",
+            self.id, self.average_rating, self.num_votes
+        )
     }
 }
 
@@ -23,9 +27,9 @@ where
         Self: Sized,
     {
         Box::new(Rating {
-            id: todo!(),
-            average_rating: todo!(),
-            num_votes: todo!(),
+            id: Self::get_field(obj_fields, 0),
+            average_rating: Self::get_field_num(obj_fields, 1),
+            num_votes: Self::get_field_num(obj_fields, 2),
         })
     }
 }

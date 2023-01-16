@@ -1,4 +1,7 @@
-use crate::record_structs::{film::Film, record::Record};
+use crate::record_structs::{
+    actor::Actor, cast::Cast, crew::Crew, episode::Episode, film::Film, film_title::FilmTitle,
+    rating::Rating, record::Record,
+};
 use anyhow::Result;
 use flate2::read::GzDecoder;
 use std::{
@@ -39,24 +42,29 @@ pub fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
     Ok(v)
 }
 
-pub fn get_records_from_file(file: &Vec<u8>) -> Result<Vec<Box<dyn Record>>> {
+pub fn get_records_from_file(file: &Vec<u8>, dataset: &str) -> Result<Vec<Box<dyn Record>>> {
     Ok(BufReader::new(file.as_slice())
         .lines()
         .map(|line| match line {
             Ok(l) => l,
             Err(err) => err.to_string(),
         })
-        .filter(|l| !is_header(l))
+        .skip(1)
         .map(|field| {
             let record_fields: Vec<String> = field
                 .split_terminator('\t')
                 .map(|f| f.to_string())
                 .collect();
-            Film::build(&record_fields)
+            match dataset {
+                "title.akas.tsv" => FilmTitle::build(&record_fields),
+                "title.basics.tsv" => Film::build(&record_fields),
+                "title.crew.tsv" => Crew::build(&record_fields),
+                "title.episode.tsv" => Episode::build(&record_fields),
+                "title.principals.tsv" => Cast::build(&record_fields),
+                "title.ratings.tsv" => Rating::build(&record_fields),
+                "name.basics.tsv" => Actor::build(&record_fields),
+                &_ => Film::build(&record_fields),
+            }
         })
         .collect())
-}
-
-fn is_header(input: &String) -> bool {
-    matches!(input.as_ref(), "tconst\ttitleType\tprimaryTitle\toriginalTitle\tisAdult\tstartYear\tendYear\truntimeMinutes\tgenres")
 }
