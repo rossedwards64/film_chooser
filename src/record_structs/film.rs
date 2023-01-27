@@ -36,7 +36,7 @@ where
         }
     }
 
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {

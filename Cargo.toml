@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.66"
 flate2 = "1.0.25"
+lazy_static = "1.4.0"
 reqwest = "0.11.13"
 tempfile = "3.3.0"
 tokio = { version = "1.22.0", features = ["full"] }

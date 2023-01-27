@@ -21,12 +21,20 @@ pub trait Record: Display {
             .collect()
     }
 
-    // use an enum instead of having multiple functions
     fn get_field_num(obj_fields: &[String], idx: usize) -> u32
     where
         Self: Sized,
     {
-        Self::get_field(obj_fields, idx).parse().unwrap_or(0)
+        Self::get_field(obj_fields, idx).parse::<u32>().unwrap_or(0)
+    }
+
+    fn get_field_float(obj_fields: &[String], idx: usize) -> f32
+    where
+        Self: Sized,
+    {
+        Self::get_field(obj_fields, idx)
+            .parse::<f32>()
+            .unwrap_or(0.0)
     }
 
     fn get_field(obj_fields: &[String], idx: usize) -> String
@@ -39,7 +47,7 @@ pub trait Record: Display {
         }
     }
 
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized;
 }

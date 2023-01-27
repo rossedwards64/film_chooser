@@ -4,7 +4,7 @@ use std::fmt::Display;
 /* title.ratings.tsv.gz */
 pub struct Rating {
     id: String,
-    average_rating: u32,
+    average_rating: f32,
     num_votes: u32,
 }
 
@@ -22,13 +22,13 @@ impl Record for Rating
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
-        Box::new(Rating {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
-            average_rating: Self::get_field_num(obj_fields, 1),
+            average_rating: Self::get_field_float(obj_fields, 1),
             num_votes: Self::get_field_num(obj_fields, 2),
         })
     }

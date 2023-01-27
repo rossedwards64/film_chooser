@@ -25,11 +25,11 @@ impl Record for Cast
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Cast>
     where
         Self: Sized,
     {
-        Box::new(Cast {
+        Box::new(Self {
             title_id: Self::get_field(obj_fields, 0),
             ordering: Self::get_field_num(obj_fields, 1),
             person_id: Self::get_field(obj_fields, 2),

@@ -22,11 +22,11 @@ impl Record for Actor
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
-        Box::new(Actor {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
             primary_name: Self::get_field(obj_fields, 1),
             birth_year: Self::get_field_num(obj_fields, 2),

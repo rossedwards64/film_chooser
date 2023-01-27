@@ -24,11 +24,11 @@ impl Record for Crew
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Crew>
     where
         Self: Sized,
     {
-        Box::new(Crew {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
             director_ids: Self::get_field_vec(obj_fields, 1),
             writer_ids: Self::get_field_vec(obj_fields, 2),

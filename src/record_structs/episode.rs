@@ -23,11 +23,11 @@ impl Record for Episode
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
-        Box::new(Episode {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
             parent_id: Self::get_field(obj_fields, 1),
             season_number: Self::get_field_num(obj_fields, 4),

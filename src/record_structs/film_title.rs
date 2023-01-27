@@ -1,7 +1,7 @@
 use crate::record_structs::record::Record;
 use std::fmt::Display;
 
-pub(crate) enum TitleType {
+enum TitleType {
     Alternative(String),
     Dvd(String),
     Festival(String),
@@ -60,7 +60,7 @@ impl Record for FilmTitle
 where
     dyn Record: Display,
 {
-    fn build(obj_fields: &[String]) -> Box<dyn Record>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
@@ -81,7 +81,7 @@ where
                 .collect()
         };
 
-        Box::new(FilmTitle {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
             ordering: Self::get_field_num(obj_fields, 1),
             title: Self::get_field(obj_fields, 2),
