@@ -1,10 +1,9 @@
 use crate::record_structs::record::Record;
-use crate::search::record_filter::FILTERS;
+use crate::search::{filter_records::filter_records, record_filter::FILTERS};
 use anyhow::Result;
-use search::search_records::search_records;
 use std::{
     env::args,
-    ffi::OsString,
+    ffi::{OsStr, OsString},
     fs::{write, File},
     io::{stdin, BufReader},
     path::Path,
@@ -38,15 +37,21 @@ async fn main() -> Result<()> {
     println!("Searching by {query}");
     if !&args.is_empty() && args[1] == "--file" {
         if let Ok(records) = read_local_file(&args[2]) {
-            let r = search_records(&records, FILTERS.get(query).unwrap());
-            r.iter().for_each(|&r| {
-                println!("{}", r);
-            })
+            if let Some(filter_func) = FILTERS.get(query) {
+                let r = filter_records(&records, *filter_func);
+                for r in &r {
+                    println!("{r}");
+                }
+            };
         }
     } else {
         let dataset_filename = OsString::from(DATASETS[input].to_string() + ".gz");
         if let Ok(records) = download_file(dataset_filename).await {
-            println!("{}", &records.first().unwrap());
+            records
+                .first()
+                .as_ref()
+                .map_or_else(|| println!("No record found!"),
+                             |r| println!("{r}"));
         }
     }
     Ok(())
@@ -56,7 +61,7 @@ fn menu() -> usize {
     SEARCH_OPTIONS
         .iter()
         .enumerate()
-        .map(|(i, _opt)| (i + 1, _opt))
+        .map(|option| (option.0 + 1, option.1))
         .for_each(|(i, opt)| {
             println!("{i}: {opt}");
         });
@@ -77,28 +82,31 @@ fn menu() -> usize {
 }
 
 fn read_local_file(file_path: &OsString) -> Result<Vec<Box<dyn Record>>> {
-    println!("Using local file {}", file_path.to_str().expect("N/A"));
     let file = File::open(file_path)?;
-    get_records::get_records_from_file(
-        BufReader::new(file),
-        Path::new(file_path)
+    let file_path = {
+        let path_str = Path::new(file_path)
             .file_name()
-            .expect("Couldn't convert filename to string.")
-            .to_str()
-            .unwrap_or(""),
-    )
+            .map_or(Some(""), OsStr::to_str);
+        path_str.unwrap_or("")
+    };
+
+    Ok(get_records::parse_records_to_vec(
+        BufReader::new(file),
+        file_path,
+    ))
 }
 
 async fn download_file(dataset_url: OsString) -> Result<Vec<Box<dyn Record>>> {
-    let dataset_url = dataset_url
-        .to_str()
-        .expect("Couldn't convert filename to string.");
+    let dataset_url = dataset_url.to_str().map_or("", |d| d);
     let dataset = get_records::download_dataset(&dataset_url.to_string()).await;
     let file = dataset?.path().join(dataset_url);
     println!("Downloaded file to {}, now unzipping...", file.display());
     let bytes = get_records::decompress_content(&file)?;
     let decomp_file = Path::new(&file);
-    write(decomp_file, bytes).expect("Could write to file.");
+    write(decomp_file, bytes)?;
     let decomp_file = File::open(decomp_file)?;
-    get_records::get_records_from_file(BufReader::new(decomp_file), dataset_url)
+    Ok(get_records::parse_records_to_vec(
+        BufReader::new(decomp_file),
+        dataset_url,
+    ))
 }

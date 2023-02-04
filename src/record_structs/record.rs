@@ -5,10 +5,10 @@ pub trait Record: Display {
     where
         Self: Sized,
     {
-        match &obj_fields.get(idx) {
-            Some(b) => &*b.to_string() == "1",
-            None => false,
-        }
+        obj_fields
+            .get(idx)
+            .as_ref()
+            .map_or(false, |b| &*(*b).to_string() == "1")
     }
 
     fn get_field_vec(obj_fields: &[String], idx: usize) -> Vec<String>
@@ -17,7 +17,7 @@ pub trait Record: Display {
     {
         Self::get_field(obj_fields, idx)
             .split_terminator(' ')
-            .map(|s| s.to_string())
+            .map(std::string::ToString::to_string)
             .collect()
     }
 
@@ -41,10 +41,9 @@ pub trait Record: Display {
     where
         Self: Sized,
     {
-        match obj_fields.get(idx) {
-            Some(r) => r.to_string(),
-            None => "None".to_owned(),
-        }
+        obj_fields
+            .get(idx)
+            .map_or_else(|| "None".to_owned(), ToString::to_string)
     }
 
     fn new(obj_fields: &[String]) -> Box<Self>

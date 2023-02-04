@@ -16,21 +16,21 @@ enum TitleType {
 impl ToString for TitleType {
     fn to_string(&self) -> String {
         match self {
-            TitleType::Alternative(s)
-            | TitleType::Dvd(s)
-            | TitleType::Festival(s)
-            | TitleType::Video(s)
-            | TitleType::Tv(s)
-            | TitleType::Working(s)
-            | TitleType::Original(s)
-            | TitleType::ImdbDisplay(s) => s.to_string(),
-            TitleType::None(_) => "N/A".to_string(),
+            Self::Alternative(s)
+            | Self::Dvd(s)
+            | Self::Festival(s)
+            | Self::Video(s)
+            | Self::Tv(s)
+            | Self::Working(s)
+            | Self::Original(s)
+            | Self::ImdbDisplay(s) => s.to_string(),
+            Self::None(_) => "N/A".to_string(),
         }
     }
 }
 
 // title.akas.tsv.gz
-pub(crate) struct FilmTitle {
+pub struct FilmTitle {
     id: String,
     ordering: u32,
     title: String,
@@ -43,7 +43,10 @@ pub(crate) struct FilmTitle {
 
 impl FilmTitle {
     fn get_types_as_strings(&self) -> Vec<String> {
-        self.types.iter().map(|t| t.to_string()).collect()
+        self.types
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect()
     }
 }
 

@@ -25,7 +25,7 @@ impl Record for Cast
 where
     dyn Record: Display,
 {
-    fn new(obj_fields: &[String]) -> Box<Cast>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {

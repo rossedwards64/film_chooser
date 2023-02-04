@@ -2,7 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.basics.tsv.gz */
-pub(crate) struct Film {
+pub struct Film {
     id: String,
     title_type: String,
     primary_title: String,
@@ -26,21 +26,11 @@ impl Record for Film
 where
     dyn Record: Display,
 {
-    fn get_field(obj_fields: &[String], idx: usize) -> String
-    where
-        Self: Sized,
-    {
-        match obj_fields.get(idx) {
-            Some(r) => r.to_string(),
-            None => "None".to_owned(),
-        }
-    }
-
     fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
-        Box::new(Film {
+        Box::new(Self {
             id: Self::get_field(obj_fields, 0),
             title_type: Self::get_field(obj_fields, 1),
             primary_title: Self::get_field(obj_fields, 2),

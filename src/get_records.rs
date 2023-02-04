@@ -7,7 +7,6 @@ use flate2::read::GzDecoder;
 use std::{
     fs::File as StdFile,
     io::{BufRead, BufReader, Read},
-    ops::Deref,
     path::PathBuf,
 };
 use tempfile::{Builder, TempDir};
@@ -23,7 +22,7 @@ pub async fn download_dataset(query: &String) -> Result<TempDir> {
             response
                 .url()
                 .path_segments()
-                .and_then(|segments| segments.last())
+                .and_then(std::iter::Iterator::last)
                 .and_then(|name| if name.is_empty() { None } else { Some(name) })
                 .unwrap_or("tmp"),
         );
@@ -31,7 +30,7 @@ pub async fn download_dataset(query: &String) -> Result<TempDir> {
         AsyncFile::create(filename).await?
     };
     let content = response.bytes().await?;
-    copy(&mut content.deref(), &mut dest).await?;
+    copy(&mut &*content, &mut dest).await?;
     Ok(temp_dir)
 }
 
@@ -42,12 +41,8 @@ pub fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
     Ok(v)
 }
 
-pub fn get_records_from_file(
-    file: BufReader<StdFile>,
-    dataset: &str,
-) -> Result<Vec<Box<dyn Record>>> {
-    Ok(file
-        .lines()
+pub fn parse_records_to_vec(file: BufReader<StdFile>, dataset: &str) -> Vec<Box<dyn Record>> {
+    file.lines()
         .map(|line| match line {
             Ok(l) => l,
             Err(err) => err.to_string(),
@@ -56,7 +51,7 @@ pub fn get_records_from_file(
         .map(|field| -> Box<dyn Record> {
             let record_fields: Vec<String> = field
                 .split_terminator('\t')
-                .map(|f| f.to_string())
+                .map(std::string::ToString::to_string)
                 .collect();
             match dataset {
                 "title.akas.tsv" => FilmTitle::new(&record_fields),
@@ -66,8 +61,8 @@ pub fn get_records_from_file(
                 "title.principals.tsv" => Cast::new(&record_fields),
                 "title.ratings.tsv" => Rating::new(&record_fields),
                 "name.basics.tsv" => Actor::new(&record_fields),
-                &_ => Film::new(&record_fields),
+                &_ => todo!(),
             }
         })
-        .collect())
+        .collect()
 }

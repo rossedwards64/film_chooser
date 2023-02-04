@@ -2,7 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.crew.tsv.gz */
-pub(crate) struct Crew {
+pub struct Crew {
     id: String,
     director_ids: Vec<String>,
     writer_ids: Vec<String>,
@@ -24,7 +24,7 @@ impl Record for Crew
 where
     dyn Record: Display,
 {
-    fn new(obj_fields: &[String]) -> Box<Crew>
+    fn new(obj_fields: &[String]) -> Box<Self>
     where
         Self: Sized,
     {
