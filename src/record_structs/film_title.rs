@@ -31,7 +31,7 @@ impl ToString for TitleType {
 
 // title.akas.tsv.gz
 pub struct FilmTitle {
-    id: String,
+    tconst: String,
     ordering: u32,
     title: String,
     region: String,
@@ -53,7 +53,7 @@ impl FilmTitle {
 impl Display for FilmTitle {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "ID: {}\nOrdering: {}\nTitle: {}\nRegion: {}\nLanguage: {}\nTypes:{}\nAttributes: {}\nIs Original Title: {}",
-               self.id, self.ordering, self.title, self.region, self.language,
+               self.tconst, self.ordering, self.title, self.region, self.language,
                self.get_types_as_strings().join(", "),
                self.attributes.join(", "), self.is_original_title,)
     }
@@ -85,7 +85,7 @@ where
         };
 
         Box::new(Self {
-            id: Self::get_field(obj_fields, 0),
+            tconst: Self::get_field(obj_fields, 0),
             ordering: Self::get_field_num(obj_fields, 1),
             title: Self::get_field(obj_fields, 2),
             region: Self::get_field(obj_fields, 3),

@@ -1,0 +1,24 @@
+#+title: Notes
+
+* Record Types
+- Alternate Titles: "title.akas.tsv.gz"
+- Titles: "title.basics.tsv.gz"
+- Crew: "title.crew.tsv.gz"
+- Episode: "title.episode.tsv.gz"
+- Cast: "title.principal.tsv.gz"
+- Rating: "title.ratings.tsv.gz"
+- Actors: "name.basics.tsv.gz"
+
+* Record Filtering
+** Titles
+- If a user enters a title, only collect records from the file that contain the title string in their primary_title/original_title field.
+
+** Directors/Writers
+- If a user enters a director/writer:
+  - Collect film records that contain the same tconst as the crew member.
+  - Collect name records that contain the same nconst as the crew member.
+
+** Actors
+- If a user enters an actor:
+  - Collect film records that contain the same tconst as the actor.
+  - Collect name records that contain the same nconst as the actor.

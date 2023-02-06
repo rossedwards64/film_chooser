@@ -1,6 +1,9 @@
-use crate::record_structs::{
-    actor::Actor, cast::Cast, crew::Crew, episode::Episode, film::Film, film_title::FilmTitle,
-    rating::Rating, record::Record,
+use crate::{
+    record_structs::{
+        actor::Actor, cast::Cast, crew::Crew, episode::Episode, film::Film, film_title::FilmTitle,
+        rating::Rating, record::Record,
+    },
+    search::record_filter::TitleFilter,
 };
 use anyhow::Result;
 use flate2::read::GzDecoder;
@@ -12,7 +15,7 @@ use std::{
 use tempfile::{Builder, TempDir};
 use tokio::{fs::File as AsyncFile, io::copy};
 
-pub async fn download_dataset(query: &String) -> Result<TempDir> {
+pub async fn download_dataset(query: &str) -> Result<TempDir> {
     let temp_dir = Builder::new().prefix("tmp_").rand_bytes(5).tempdir()?;
     let request_url = format!("https://datasets.imdbws.com/{query}");
     println!("Downloading film report from {request_url}");
@@ -41,13 +44,21 @@ pub fn decompress_content(file: &PathBuf) -> Result<Vec<u8>> {
     Ok(v)
 }
 
-pub fn parse_records_to_vec(file: BufReader<StdFile>, dataset: &str) -> Vec<Box<dyn Record>> {
+pub fn parse_records_to_vec(
+    file: BufReader<StdFile>,
+    dataset: &str,
+    record_filter: Option<&TitleFilter>,
+    query: &str,
+) -> Vec<Box<dyn Record>> {
+    let no_filter: TitleFilter = |_c, _i| true;
+    let record_filter = record_filter.unwrap_or(&no_filter);
     file.lines()
         .map(|line| match line {
             Ok(l) => l,
             Err(err) => err.to_string(),
         })
         .skip(1) // skip header line
+        .filter(|c| record_filter(c, query))
         .map(|field| -> Box<dyn Record> {
             let record_fields: Vec<String> = field
                 .split_terminator('\t')
@@ -61,7 +72,7 @@ pub fn parse_records_to_vec(file: BufReader<StdFile>, dataset: &str) -> Vec<Box<
                 "title.principals.tsv" => Cast::new(&record_fields),
                 "title.ratings.tsv" => Rating::new(&record_fields),
                 "name.basics.tsv" => Actor::new(&record_fields),
-                &_ => todo!(),
+                &_ => unimplemented!(),
             }
         })
         .collect()

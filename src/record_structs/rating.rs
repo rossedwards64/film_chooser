@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 /* title.ratings.tsv.gz */
 pub struct Rating {
-    id: String,
+    tconst: String,
     average_rating: f32,
     num_votes: u32,
 }
@@ -13,7 +13,7 @@ impl Display for Rating {
         write!(
             f,
             "ID: {}\nAverage Rating: {}\nNumber of Votes: {}",
-            self.id, self.average_rating, self.num_votes
+            self.tconst, self.average_rating, self.num_votes
         )
     }
 }
@@ -27,7 +27,7 @@ where
         Self: Sized,
     {
         Box::new(Self {
-            id: Self::get_field(obj_fields, 0),
+            tconst: Self::get_field(obj_fields, 0),
             average_rating: Self::get_field_float(obj_fields, 1),
             num_votes: Self::get_field_num(obj_fields, 2),
         })

@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 /* name.basics.tsv.gz */
 pub struct Actor {
-    id: String,
+    nconst: String,
     primary_name: String,
     birth_year: u32,
     death_year: u32,
@@ -14,7 +14,7 @@ pub struct Actor {
 impl Display for Actor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ID: {}\nPrimary Name: {}\nBirth Year: {}\nDeath Year: {}\nPrimary Profession: {}\nKnown for Titles: {}",
-        self.id, self.primary_name, self.birth_year, self.death_year, self.primary_profession.join(", "), self.known_for_titles.join(", "))
+        self.nconst, self.primary_name, self.birth_year, self.death_year, self.primary_profession.join(", "), self.known_for_titles.join(", "))
     }
 }
 
@@ -27,7 +27,7 @@ where
         Self: Sized,
     {
         Box::new(Self {
-            id: Self::get_field(obj_fields, 0),
+            nconst: Self::get_field(obj_fields, 0),
             primary_name: Self::get_field(obj_fields, 1),
             birth_year: Self::get_field_num(obj_fields, 2),
             death_year: Self::get_field_num(obj_fields, 3),
