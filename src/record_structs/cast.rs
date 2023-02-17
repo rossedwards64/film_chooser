@@ -2,6 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.principals.tsv.gz */
+#[derive(Default)]
 pub struct Cast {
     tconst: String,
     ordering: u32,

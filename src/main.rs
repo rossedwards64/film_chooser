@@ -1,132 +1,67 @@
-use crate::record_structs::record::Record;
-use crate::search::record_filter::FILTERS;
-use anyhow::Result;
-use std::{
-    env::args,
-    ffi::{OsStr, OsString},
-    fs::{write, File},
-    io::{stdin, BufReader},
-    path::Path,
+use crate::{
+    get_records::files::{common, download_file, local_file},
+    record_structs::dataset_map::{is_valid_key, DATASETS},
 };
-
+use anyhow::Result;
+use std::io::stdin;
 mod get_records;
 mod record_structs;
 mod search;
 
-const CATEGORIES: [&str; 6] = ["Title", "Director", "Episode", "Cast", "Rating", "Actor"];
-
-const DATASETS: [&str; 7] = [
-    "title.akas.tsv",
-    "title.basics.tsv",
-    "title.crew.tsv",
-    "title.episode.tsv",
-    "title.principals.tsv",
-    "title.ratings.tsv",
-    "name.basics.tsv",
-];
-
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args: Vec<OsString> = args().map(OsString::from).collect();
-    let input = menu();
-    let filter_category = CATEGORIES[input.0 - 1];
-    let query = input.1.trim_end();
-    println!("Searching by {query}");
-    if !&args.is_empty() && args[1] == "--file" {
-        if let Ok(records) = read_local_file(&args[2], filter_category, query) {
-            if records.is_empty() {
-                println!("Could not find film!");
+    let record_type = get_category().trim().to_string();
+    println!("Searching by {record_type}");
+
+    match common::get_dataset_if_exists(&record_type) {
+        Ok(dataset) => {
+            println!("Successfully acquired dataset.");
+            let mut query = String::new();
+            println!("Enter a keyword to search records by");
+            get_user_input(&mut query);
+            println!("Filtering records with {query}");
+            if dataset.exists() {
+                local_file::run_local(dataset, &record_type, &query);
             } else {
-                for r in &records {
-                    println!("{r}");
-                }
+                download_file::run_download(dataset, &record_type, &query).await;
             }
         }
-    } else {
-        let dataset_filename = OsString::from(DATASETS[input.0].to_string() + ".gz");
-        if let Ok(records) = download_file(dataset_filename, filter_category, query).await {
-            records
-                .first()
-                .as_ref()
-                .map_or_else(|| println!("No record found!"), |r| println!("{r}"));
+        Err(err) => {
+            eprintln!("Failure when fetching file: {err}");
         }
     }
     Ok(())
 }
 
-fn menu() -> (usize, String) {
-    CATEGORIES
-        .iter()
+fn get_category() -> String {
+    DATASETS
+        .keys()
         .enumerate()
-        .map(|option| (option.0 + 1, option.1))
+        .map(|(idx, key)| (idx + 1, key))
         .for_each(|(i, opt)| {
             println!("{i}: {opt}");
         });
-    print!("\nSelect a search option: ");
+    println!("Select a search option: ");
+    input_loop()
+}
 
-    let input = {
-        let mut input_buf = String::new();
-        match stdin().read_line(&mut input_buf) {
-            Ok(_) => Ok(input_buf),
-            Err(e) => Err(e),
+fn input_loop() -> String {
+    let mut valid_input = false;
+    let mut input = String::new();
+    while !valid_input {
+        get_user_input(&mut input);
+        if is_valid_key(&input) {
+            valid_input = true;
+        } else {
+            println!("Invalid search term! Please select one of the listed options.");
+            input.clear();
         }
-    };
-
-    let input = match &input {
-        Ok(i) => i.trim(),
-        Err(_e) => "",
-    };
-    let input = input.parse::<usize>().unwrap_or(0);
-    print!("\nEnter a {}: ", CATEGORIES[input - 1]);
-    let search_term = {
-        let mut input_buf = String::new();
-        let bytes = match stdin().read_line(&mut input_buf) {
-            Ok(_) => Ok(input_buf),
-            Err(e) => Err(e),
-        };
-        bytes.map_or_else(|_| todo!(), |i| i)
-    };
-    (input, search_term)
+    }
+    input
 }
 
-fn read_local_file(
-    file_path: &OsString,
-    filter_category: &str,
-    query: &str,
-) -> Result<Vec<Box<dyn Record>>> {
-    let file = File::open(file_path)?;
-    let file_path = Path::new(file_path)
-        .file_name()
-        .map_or(Some(""), OsStr::to_str)
-        .unwrap_or("");
-    let filter = FILTERS.get(filter_category);
-
-    Ok(get_records::parse_records_to_vec(
-        BufReader::new(file),
-        file_path,
-        filter,
-        query,
-    ))
-}
-
-async fn download_file(
-    dataset_url: OsString,
-    filter_category: &str,
-    query: &str,
-) -> Result<Vec<Box<dyn Record>>> {
-    let dataset_url = dataset_url.to_str().map_or("", |d| d);
-    let dataset = get_records::download_dataset(dataset_url).await;
-    let file = dataset?.path().join(dataset_url);
-    println!("Downloaded file to {}, now unzipping...", file.display());
-    let bytes = get_records::decompress_content(&file)?;
-    let decomp_file = Path::new(&file);
-    write(decomp_file, bytes)?;
-    let decomp_file = File::open(decomp_file)?;
-    let filter = FILTERS.get(filter_category);
-    Ok(get_records::parse_records_to_vec(
-        BufReader::new(decomp_file),
-        dataset_url,
-        filter,
-        query,
-    ))
+fn get_user_input(input_buf: &mut String) -> &String {
+    match stdin().read_line(input_buf) {
+        Ok(_) | Err(_) => input_buf,
+    }
 }

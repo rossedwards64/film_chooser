@@ -30,6 +30,7 @@ impl ToString for TitleType {
 }
 
 // title.akas.tsv.gz
+#[derive(Default)]
 pub struct FilmTitle {
     tconst: String,
     ordering: u32,

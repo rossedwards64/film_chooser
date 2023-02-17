@@ -1,5 +1,16 @@
 #+title: Notes
 
+* Program Steps:
+** Get User Input
+- The user will be asked for the search category they wish to use, and a search term.
+** Download/Read Related File
+- Use a local file by default
+- For example, if the user selected the "Title" category, title.basics.tsv will be read if available, otherwise it will be downloaded from IMDB.
+  If a Record has a const field (tconst, nconst), it will be replaced with the corresponding value in the appropriate file.
+** Collect Records From File
+- The file will be parsed and each row will be deserialized into a Record object; a vector of Records will be produced.
+  Filtering will happen at this stage: Each line will be matched against a filter depending on the category chosen by the user.
+
 * Record Types
 - Alternate Titles: "title.akas.tsv.gz"
 - Titles: "title.basics.tsv.gz"
@@ -22,3 +33,6 @@
 - If a user enters an actor:
   - Collect film records that contain the same tconst as the actor.
   - Collect name records that contain the same nconst as the actor.
+
+* Record Display
+- Currently, this uses rudimentary std::fmt implementation for each Record subtype. This should be improved for more readability.

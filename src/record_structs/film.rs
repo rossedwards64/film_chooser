@@ -2,6 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.basics.tsv.gz */
+#[derive(Default)]
 pub struct Film {
     tconst: String,
     title_type: String,

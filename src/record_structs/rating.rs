@@ -2,6 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.ratings.tsv.gz */
+#[derive(Default)]
 pub struct Rating {
     tconst: String,
     average_rating: f32,

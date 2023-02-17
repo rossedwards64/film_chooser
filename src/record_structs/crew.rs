@@ -2,6 +2,7 @@ use crate::record_structs::record::Record;
 use std::fmt::Display;
 
 /* title.crew.tsv.gz */
+#[derive(Default)]
 pub struct Crew {
     tconst: String,
     directors: Vec<String>,
