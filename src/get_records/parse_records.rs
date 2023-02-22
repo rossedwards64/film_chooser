@@ -7,13 +7,13 @@ use crate::{
     search::record_filter::TitleFilter,
 };
 use std::{
-    fs::File as StdFile,
+    fs::File,
     io::{BufReader, Read},
     path::Path,
 };
 
 pub fn collect_records<P: AsRef<Path>>(
-    mut file: BufReader<StdFile>,
+    mut file: BufReader<File>,
     dataset: P,
     record_filter: Option<&TitleFilter>,
     query: &str,

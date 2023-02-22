@@ -3,21 +3,27 @@ use crate::{
     record_structs::dataset_map::{is_valid_key, DATASETS},
 };
 use anyhow::Result;
-use std::io::stdin;
+use std::{env::args, io::stdin};
+
 mod get_records;
 mod record_structs;
 mod search;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let dataset_dir = match get_args() {
+        Some(s) => s,
+        None => String::from(""),
+    };
+
     let record_type = get_category().trim().to_string();
     println!("Searching by {record_type}");
 
-    match common::get_dataset_if_exists(&record_type) {
+    match common::get_dataset_if_exists(&record_type, dataset_dir) {
         Ok(dataset) => {
             println!("Successfully acquired dataset.");
-            let mut query = String::new();
             println!("Enter a keyword to search records by");
+            let mut query = String::new();
             get_user_input(&mut query);
             println!("Filtering records with {query}");
             if dataset.exists() {
@@ -41,11 +47,11 @@ fn get_category() -> String {
         .for_each(|(i, opt)| {
             println!("{i}: {opt}");
         });
-    println!("Select a search option: ");
     input_loop()
 }
 
 fn input_loop() -> String {
+    println!("Select a search option: ");
     let mut valid_input = false;
     let mut input = String::new();
     while !valid_input {
@@ -60,8 +66,13 @@ fn input_loop() -> String {
     input
 }
 
-fn get_user_input(input_buf: &mut String) -> &String {
+fn get_user_input(input_buf: &mut String) {
     match stdin().read_line(input_buf) {
         Ok(_) | Err(_) => input_buf,
-    }
+    };
+}
+
+fn get_args() -> Option<String> {
+    let args: Vec<String> = args().collect();
+    Some(args[1].clone())
 }

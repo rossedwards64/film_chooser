@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.66"
+audit = "0.7.2"
 flate2 = "1.0.25"
 lazy_static = "1.4.0"
 reqwest = "0.11.13"
