@@ -1,5 +1,5 @@
 use crate::{
-    get_records::files::{common, download_file, local_file},
+    get_records::files::{common::{self, get_full_path}, download_file, local_file},
     record_structs::dataset_map::{is_valid_key, DATASETS},
 };
 use anyhow::Result;
@@ -15,6 +15,8 @@ async fn main() -> Result<()> {
         Some(s) => s,
         None => String::from(""),
     };
+
+    let dataset_dir = get_full_path(dataset_dir);
 
     let record_type = get_category().trim().to_string();
     println!("Searching by {record_type}");

@@ -18,6 +18,7 @@ pub fn collect_records<P: AsRef<Path>>(
     record_filter: Option<&TitleFilter>,
     query: &str,
 ) -> Vec<Box<dyn Record>> {
+    println!("Reading file {}...", dataset.as_ref().display());
     let no_filter: TitleFilter = |_c, _i| true;
     let record_filter = record_filter.unwrap_or(&no_filter);
     let mut file_str = String::new();

@@ -2,7 +2,7 @@ use crate::record_structs::dataset_map::DATASETS;
 use anyhow::Result;
 use std::{
     fs::File,
-    io::{self, BufReader, ErrorKind},
+    io::{self, ErrorKind},
     path::{Path, PathBuf},
 };
 
@@ -25,12 +25,19 @@ pub fn get_dataset_if_exists<P: AsRef<Path>>(
         })
 }
 
-pub fn get_reader_from_path<P: AsRef<Path>>(path: P) -> Result<BufReader<File>, io::Error> {
-    let file = match File::open(path) {
+pub fn get_full_path<P: AsRef<Path>>(path: P) -> PathBuf {
+    match path.as_ref().canonicalize() {
+        Ok(p) => p,
+        Err(_) => path.as_ref().to_path_buf()
+    }
+}
+
+pub fn get_reader_from_path<P: AsRef<Path>>(path: P) -> Result<File, io::Error> {
+    let file = match File::open(&path) {
         Ok(f) => f,
         Err(e) => return Err(e),
     };
-    Ok(BufReader::new(file))
+    Ok(file)
 }
 
 pub fn path_to_string<P: AsRef<Path>>(path: P) -> String {

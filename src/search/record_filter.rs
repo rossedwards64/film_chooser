@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use std::{collections::HashMap, io::BufRead};
+use std::{collections::HashMap, io::{BufReader, BufRead}};
 
 use crate::get_records::files::common::{get_dataset, get_reader_from_path};
 
@@ -12,6 +12,7 @@ lazy_static! {
         map.insert("Director", |cur_line, input| {
             get_dataset("names").map_or(false, |dataset| {
                 get_reader_from_path(dataset).map_or(false, |s| {
+                    let s = BufReader::new(s);
                     s.lines()
                         .skip(1)
                         .any(|cur| cur.map_or(false, |c| c.contains(input) && c.contains(cur_line)))
