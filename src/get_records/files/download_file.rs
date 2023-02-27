@@ -85,10 +85,9 @@ fn decompress_content<P: AsRef<Path>>(file: P) -> Result<PathBuf> {
 
 fn ask_to_persist(temp_dir: &TempDir) -> DownloadDir {
     let mut valid_input = false;
-    let mut input_buf = String::new();
     while !valid_input {
         println!("Would you like to permanently save this dataset? y/n");
-        get_user_input(&mut input_buf);
+        let mut input_buf = get_user_input();
         if input_buf.eq_ignore_ascii_case("y") {
             println!("Saving dataset...");
             let new_path = Path::new("/home/ross/Documents/programming/rust/film_chooser/datasets");

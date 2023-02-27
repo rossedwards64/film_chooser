@@ -1,6 +1,6 @@
 use crate::{
-    get_records::files::{common::{self, get_full_path}, download_file, local_file},
-    record_structs::dataset_map::{is_valid_key, DATASETS},
+    get_records::files::{common, download_file, local_file},
+    record_structs::dataset_map,
 };
 use anyhow::Result;
 use std::{env::args, io::stdin};
@@ -11,22 +11,17 @@ mod search;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let dataset_dir = match get_args() {
-        Some(s) => s,
-        None => String::from(""),
+    let dataset_dir = {
+        let path = get_args().map_or_else(String::new, |s| s);
+        common::get_full_path(path)
     };
-
-    let dataset_dir = get_full_path(dataset_dir);
-
-    let record_type = get_category().trim().to_string();
+    let record_type = get_category();
     println!("Searching by {record_type}");
 
-    match common::get_dataset_if_exists(&record_type, dataset_dir) {
+    match dataset_map::get_dataset_if_exists(&record_type, dataset_dir) {
         Ok(dataset) => {
-            println!("Successfully acquired dataset.");
             println!("Enter a keyword to search records by");
-            let mut query = String::new();
-            get_user_input(&mut query);
+            let query = get_user_input();
             println!("Filtering records with {query}");
             if dataset.exists() {
                 local_file::run_local(dataset, &record_type, &query);
@@ -42,13 +37,7 @@ async fn main() -> Result<()> {
 }
 
 fn get_category() -> String {
-    DATASETS
-        .keys()
-        .enumerate()
-        .map(|(idx, key)| (idx + 1, key))
-        .for_each(|(i, opt)| {
-            println!("{i}: {opt}");
-        });
+    dataset_map::print_dataset_keys();
     input_loop()
 }
 
@@ -57,8 +46,8 @@ fn input_loop() -> String {
     let mut valid_input = false;
     let mut input = String::new();
     while !valid_input {
-        get_user_input(&mut input);
-        if is_valid_key(&input) {
+        input = get_user_input();
+        if dataset_map::is_valid_key(&input) {
             valid_input = true;
         } else {
             println!("Invalid search term! Please select one of the listed options.");
@@ -68,13 +57,18 @@ fn input_loop() -> String {
     input
 }
 
-fn get_user_input(input_buf: &mut String) {
-    match stdin().read_line(input_buf) {
-        Ok(_) | Err(_) => input_buf,
-    };
+fn get_user_input() -> String {
+    let mut input_buf = String::new();
+    match stdin().read_line(&mut input_buf) {
+        Ok(_) | Err(_) => input_buf.trim().to_string(),
+    }
 }
 
 fn get_args() -> Option<String> {
     let args: Vec<String> = args().collect();
-    Some(args[1].clone())
+    if args[1].is_empty() {
+        None
+    } else {
+        Some(args[1].clone())
+    }
 }

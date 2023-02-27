@@ -1,5 +1,5 @@
 use crate::record_structs::record::Record;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 /* title.episode.tsv.gz */
 #[derive(Default)]
@@ -11,7 +11,7 @@ pub struct Episode {
 }
 
 impl Display for Episode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
             "ID: {}\nShow ID: {}\nSeason Number: {}\nEpisode Number: {}",
@@ -31,8 +31,8 @@ where
         Box::new(Self {
             tconst: Self::get_field(obj_fields, 0),
             parent_tconst: Self::get_field(obj_fields, 1),
-            season_number: Self::get_field_num(obj_fields, 4),
-            episode_number: Self::get_field_num(obj_fields, 3),
+            season_number: Self::get_field_int(obj_fields, 4),
+            episode_number: Self::get_field_int(obj_fields, 3),
         })
     }
 }

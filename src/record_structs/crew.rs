@@ -1,5 +1,5 @@
 use crate::record_structs::record::Record;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 /* title.crew.tsv.gz */
 #[derive(Default)]
@@ -10,7 +10,7 @@ pub struct Crew {
 }
 
 impl Display for Crew {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
             "ID: {}\nDirector IDs: {}\nWriter IDs: {}\n",

@@ -1,4 +1,4 @@
-use super::files::common::path_to_string;
+use super::files::common;
 use crate::{
     record_structs::{
         cast::Cast, crew::Crew, episode::Episode, film::Film, film_title::FilmTitle,
@@ -10,14 +10,18 @@ use std::{
     fs::File,
     io::{BufReader, Read},
     path::Path,
+    string::ToString,
 };
 
-pub fn collect_records<P: AsRef<Path>>(
+pub fn collect_records<P>(
     mut file: BufReader<File>,
     dataset: P,
     record_filter: Option<&TitleFilter>,
     query: &str,
-) -> Vec<Box<dyn Record>> {
+) -> Vec<Box<dyn Record>>
+where
+    P: AsRef<Path>,
+{
     println!("Reading file {}...", dataset.as_ref().display());
     let no_filter: TitleFilter = |_c, _i| true;
     let record_filter = record_filter.unwrap_or(&no_filter);
@@ -31,25 +35,28 @@ pub fn collect_records<P: AsRef<Path>>(
         .lines()
         .skip(1) // skip header line
         .filter(|c| record_filter(c, query))
-        .map(|line| map_fields_to_record(line, dataset.as_ref()))
+        .filter_map(|line| map_fields_to_record(line, dataset.as_ref()))
         .collect()
 }
 
-fn map_fields_to_record<P: AsRef<Path>>(line: &str, dataset: P) -> Box<dyn Record> {
+fn map_fields_to_record<P>(line: &str, dataset: P) -> Option<Box<dyn Record>>
+where
+    P: AsRef<Path>,
+{
     let record_fields: Vec<String> = line
         .split_terminator('\t')
-        .map(std::string::ToString::to_string)
+        .map(ToString::to_string)
         .collect();
-    let dataset = path_to_string(dataset);
+    let dataset = common::path_to_string(dataset);
     match dataset.as_str() {
-        "title.akas.tsv" => FilmTitle::new(&record_fields),
-        "title.basics.tsv" => Film::new(&record_fields),
-        "title.crew.tsv" => Crew::new(&record_fields),
-        "title.episode.tsv" => Episode::new(&record_fields),
-        "title.principals.tsv" => Cast::new(&record_fields),
-        "title.ratings.tsv" => Rating::new(&record_fields),
-        "name.basics.tsv" => Person::new(&record_fields),
-        _ => unreachable!(),
+        "title.akas.tsv" => Some(FilmTitle::new(&record_fields)),
+        "title.basics.tsv" => Some(Film::new(&record_fields)),
+        "title.crew.tsv" => Some(Crew::new(&record_fields)),
+        "title.episode.tsv" => Some(Episode::new(&record_fields)),
+        "title.principals.tsv" => Some(Cast::new(&record_fields)),
+        "title.ratings.tsv" => Some(Rating::new(&record_fields)),
+        "name.basics.tsv" => Some(Person::new(&record_fields)),
+        _ => None,
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::record_structs::record::Record;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 /* title.principals.tsv.gz */
 #[derive(Default)]
@@ -13,7 +13,7 @@ pub struct Cast {
 }
 
 impl Display for Cast {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
             "Title ID: {}\nOrder: {}\nPerson ID: {}\nCategroy: {}\nJob: {}\nCharacter: {}\n",
@@ -32,7 +32,7 @@ where
     {
         Box::new(Self {
             tconst: Self::get_field(obj_fields, 0),
-            ordering: Self::get_field_num(obj_fields, 1),
+            ordering: Self::get_field_int(obj_fields, 1),
             nconst: Self::get_field(obj_fields, 2),
             category: Self::get_field(obj_fields, 3),
             job: Self::get_field(obj_fields, 4),

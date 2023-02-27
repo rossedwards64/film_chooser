@@ -1,7 +1,7 @@
-use std::fmt::Display;
+use std::{fmt::Display, string::ToString};
 
 pub trait Record: Display {
-    fn get_bool(obj_fields: &[String], idx: usize) -> bool
+    fn get_field_bool(obj_fields: &[String], idx: usize) -> bool
     where
         Self: Sized,
     {
@@ -17,11 +17,11 @@ pub trait Record: Display {
     {
         Self::get_field(obj_fields, idx)
             .split_terminator(' ')
-            .map(std::string::ToString::to_string)
+            .map(ToString::to_string)
             .collect()
     }
 
-    fn get_field_num(obj_fields: &[String], idx: usize) -> u32
+    fn get_field_int(obj_fields: &[String], idx: usize) -> u32
     where
         Self: Sized,
     {

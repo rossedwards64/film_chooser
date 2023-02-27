@@ -1,5 +1,5 @@
 use crate::record_structs::record::Record;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 /* title.ratings.tsv.gz */
 #[derive(Default)]
@@ -10,7 +10,7 @@ pub struct Rating {
 }
 
 impl Display for Rating {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
             "ID: {}\nAverage Rating: {}\nNumber of Votes: {}",
@@ -30,7 +30,7 @@ where
         Box::new(Self {
             tconst: Self::get_field(obj_fields, 0),
             average_rating: Self::get_field_float(obj_fields, 1),
-            num_votes: Self::get_field_num(obj_fields, 2),
+            num_votes: Self::get_field_int(obj_fields, 2),
         })
     }
 }

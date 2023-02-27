@@ -1,5 +1,8 @@
 use crate::record_structs::record::Record;
-use std::fmt::Display;
+use std::{
+    fmt::{Display, Formatter, Result},
+    string::ToString,
+};
 
 enum TitleType {
     Alternative(String),
@@ -44,15 +47,12 @@ pub struct FilmTitle {
 
 impl FilmTitle {
     fn get_types_as_strings(&self) -> Vec<String> {
-        self.types
-            .iter()
-            .map(std::string::ToString::to_string)
-            .collect()
+        self.types.iter().map(ToString::to_string).collect()
     }
 }
 
 impl Display for FilmTitle {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "ID: {}\nOrdering: {}\nTitle: {}\nRegion: {}\nLanguage: {}\nTypes:{}\nAttributes: {}\nIs Original Title: {}",
                self.tconst, self.ordering, self.title, self.region, self.language,
                self.get_types_as_strings().join(", "),
@@ -87,13 +87,13 @@ where
 
         Box::new(Self {
             tconst: Self::get_field(obj_fields, 0),
-            ordering: Self::get_field_num(obj_fields, 1),
+            ordering: Self::get_field_int(obj_fields, 1),
             title: Self::get_field(obj_fields, 2),
             region: Self::get_field(obj_fields, 3),
             language: Self::get_field(obj_fields, 4),
             types,
             attributes: Self::get_field_vec(obj_fields, 6),
-            is_original_title: Self::get_bool(obj_fields, 7),
+            is_original_title: Self::get_field_bool(obj_fields, 7),
         })
     }
 }
